@@ -8,7 +8,7 @@ import torch.optim as optim
 from tqdm import tqdm
 from segment_anything import sam_model_registry
 
-
+from .loss import CombinedLoss
 class SAMFineTuner:
     """
     Fine-tuner for SAM model.
@@ -27,7 +27,7 @@ class SAMFineTuner:
         
         self._freeze_layers()
         
-        self.criterion = nn.BCEWithLogitsLoss()
+        self.criterion = CombinedLoss()
         self.optimizer = optim.AdamW(
             filter(lambda p: p.requires_grad, self.sam.parameters()),
             lr=config.LEARNING_RATE,
