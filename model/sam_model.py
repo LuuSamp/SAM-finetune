@@ -210,15 +210,22 @@ class SAMFineTuner:
             self.history['val_iou'].append(val_iou)
             self.history['val_dice'].append(val_dice)
             
-            print(f"  Train Loss: {train_loss:.4f}")
+            print(f"  Train Loss: {train_loss:.4f}")    
             print(f"  Val Loss: {val_loss:.4f} | IoU: {val_iou:.4f} | Dice: {val_dice:.4f}")
             
             self.scheduler.step(val_loss)
-            
+
+            # Save last model
+            if epoch % 5 == 0 or epoch == self.config.NUM_EPOCHS - 1:
+                torch.save(self.sam.state_dict(), f"{self.config.OUTPUT_DIR}/last_model.pth")
+                print("  Last model saved.")
+
+            # Save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.sam.state_dict(), f"{self.config.OUTPUT_DIR}/best_model.pth")
-                print("  Model saved!")
+                print("  Best model saved.")
+
             print()
         
         return self.history
