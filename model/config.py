@@ -43,6 +43,14 @@ class Config:
         
         # Augmentation
         self.USE_AUGMENTATION = True
+        
+        # Prompt settings
+        self.USE_BOX_PROMPTS = True  # Enable bounding box prompts
+        self.USE_BOTH_PROMPTS = True  # Use both points and boxes simultaneously
+        self.PROMPT_MIX_RATIO = 0.5  # Ratio of boxes vs points when USE_BOTH_PROMPTS=False (0.0 = only points, 1.0 = only boxes)
+        
+        # Checkpoint settings
+        self.CHECKPOINT_FREQUENCY = 5  # Save checkpoint every N epochs
     
     def print_config(self):
         """Print configuration settings."""
@@ -53,5 +61,8 @@ class Config:
         print(f"  Epochs: {self.NUM_EPOCHS}")
         print(f"  Learning Rate: {self.LEARNING_RATE}")
         print(f"  Train/Val/Test Split: {self.TRAIN_SPLIT}/{self.VAL_SPLIT}/{self.TEST_SPLIT}")
+        print(f"  Prompt Strategy: {'Both (points + boxes)' if self.USE_BOTH_PROMPTS and self.USE_BOX_PROMPTS else ('Boxes only' if self.USE_BOX_PROMPTS else 'Points only')}")
+        if not self.USE_BOTH_PROMPTS:
+            print(f"  Prompt Mix Ratio: {self.PROMPT_MIX_RATIO}")
         print(f"  Data Directory: {self.DATA_DIR}")
         print(f"  Checkpoint Path: {self.CHECKPOINT_PATH}")

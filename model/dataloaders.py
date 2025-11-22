@@ -33,6 +33,25 @@ class SAMDataset(Dataset):
     def __len__(self):
         return len(self.image_paths)
     
+    def compute_bounding_box(self, mask):
+        """
+        Compute bounding box from mask.
+        
+        Args:
+            mask (numpy.ndarray): Binary mask
+            
+        Returns:
+            numpy.ndarray: Bounding box in format [x_min, y_min, x_max, y_max] or None if no mask
+        """
+        coords = np.argwhere(mask > 0)
+        if len(coords) == 0:
+            return None
+        
+        y_min, x_min = coords.min(axis=0)
+        y_max, x_max = coords.max(axis=0)
+        
+        return np.array([x_min, y_min, x_max, y_max], dtype=np.float32)
+    
     def preprocess_image(self, image):
         """
         Preprocess image to be compatible with SAM requirements.
@@ -93,12 +112,16 @@ class SAMDataset(Dataset):
             image = augmented['image']
             mask = augmented['mask']
         
+        # Store original mask dimensions before preprocessing
+        original_mask_h, original_mask_w = mask.shape[:2]
+        
         image, (new_h, new_w) = self.preprocess_image(image)
         mask = self.preprocess_mask(mask, new_h, new_w)
         
         image_tensor = torch.from_numpy(image).permute(2, 0, 1).float()
         mask_tensor = torch.from_numpy(mask).unsqueeze(0).float()
         
+        # Compute point coordinates (center of mask)
         coords = np.argwhere(mask > 0)
         if len(coords) > 0:
             center = coords.mean(axis=0).astype(int)
@@ -108,12 +131,26 @@ class SAMDataset(Dataset):
             point_coords = np.array([[self.target_size//2, self.target_size//2]])
             point_labels = np.array([0])
         
+        # Compute bounding box from the preprocessed mask
+        # The mask is already resized and padded to target_size
+        box_coords = self.compute_bounding_box(mask)
+        if box_coords is None:
+            # If no mask, use a default box in the center
+            box_coords = np.array([
+                self.target_size // 4,
+                self.target_size // 4,
+                3 * self.target_size // 4,
+                3 * self.target_size // 4
+            ], dtype=np.float32)
+        
         return {
             'image': image_tensor,
             'mask': mask_tensor,
             'point_coords': torch.from_numpy(point_coords).float(),
             'point_labels': torch.from_numpy(point_labels),
-            'original_size': (new_h, new_w)
+            'box_coords': torch.from_numpy(box_coords).float() if box_coords is not None else None,
+            'original_size': (new_h, new_w),
+            'original_mask_size': (original_mask_h, original_mask_w)
         }
 
 

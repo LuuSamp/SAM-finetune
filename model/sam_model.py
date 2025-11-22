@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+import random
 from segment_anything import sam_model_registry
 
 from .loss import CombinedLoss
@@ -81,6 +82,9 @@ class SAMFineTuner:
             masks_gt = batch['mask'].to(self.device)
             point_coords = batch['point_coords'].to(self.device)
             point_labels = batch['point_labels'].to(self.device)
+            box_coords = batch.get('box_coords', None)
+            if box_coords is not None:
+                box_coords = box_coords.to(self.device)
             
             batch_size = images.shape[0]
             self.optimizer.zero_grad()
@@ -90,9 +94,34 @@ class SAMFineTuner:
                 with torch.no_grad():
                     image_embedding = self.sam.image_encoder(images[i:i+1])
                 
+                # Determine prompt strategy
+                if self.config.USE_BOTH_PROMPTS and self.config.USE_BOX_PROMPTS and box_coords is not None:
+                    # Use both points and boxes simultaneously (recommended)
+                    points_input = point_coords[i:i+1]
+                    labels_input = point_labels[i:i+1]
+                    boxes_input = box_coords[i:i+1]  # Shape: [1, 4] for [x_min, y_min, x_max, y_max]
+                elif self.config.USE_BOX_PROMPTS and box_coords is not None:
+                    # Randomly choose between points and boxes based on PROMPT_MIX_RATIO
+                    use_box = random.random() < self.config.PROMPT_MIX_RATIO
+                    if use_box:
+                        # Use bounding box prompt only
+                        boxes_input = box_coords[i:i+1]
+                        points_input = None
+                        labels_input = None
+                    else:
+                        # Use point prompt only
+                        points_input = point_coords[i:i+1]
+                        labels_input = point_labels[i:i+1]
+                        boxes_input = None
+                else:
+                    # Use point prompt only (fallback)
+                    points_input = point_coords[i:i+1]
+                    labels_input = point_labels[i:i+1]
+                    boxes_input = None
+                
                 sparse_embeddings, dense_embeddings = self.sam.prompt_encoder(
-                    points=(point_coords[i:i+1], point_labels[i:i+1]),
-                    boxes=None,
+                    points=(points_input, labels_input) if points_input is not None else None,
+                    boxes=boxes_input,
                     masks=None
                 )
                 
@@ -146,14 +175,43 @@ class SAMFineTuner:
                 masks_gt = batch['mask'].to(self.device)
                 point_coords = batch['point_coords'].to(self.device)
                 point_labels = batch['point_labels'].to(self.device)
+                box_coords = batch.get('box_coords', None)
+                if box_coords is not None:
+                    box_coords = box_coords.to(self.device)
                 
                 batch_size = images.shape[0]
                 
                 for i in range(batch_size):
                     image_embedding = self.sam.image_encoder(images[i:i+1])
+                    
+                    # Determine prompt strategy (same as training)
+                    if self.config.USE_BOTH_PROMPTS and self.config.USE_BOX_PROMPTS and box_coords is not None:
+                        # Use both points and boxes simultaneously (recommended)
+                        points_input = point_coords[i:i+1]
+                        labels_input = point_labels[i:i+1]
+                        boxes_input = box_coords[i:i+1]  # Shape: [1, 4] for [x_min, y_min, x_max, y_max]
+                    elif self.config.USE_BOX_PROMPTS and box_coords is not None:
+                        # Randomly choose between points and boxes based on PROMPT_MIX_RATIO
+                        use_box = random.random() < self.config.PROMPT_MIX_RATIO
+                        if use_box:
+                            # Use bounding box prompt only
+                            boxes_input = box_coords[i:i+1]
+                            points_input = None
+                            labels_input = None
+                        else:
+                            # Use point prompt only
+                            points_input = point_coords[i:i+1]
+                            labels_input = point_labels[i:i+1]
+                            boxes_input = None
+                    else:
+                        # Use point prompt only (fallback)
+                        points_input = point_coords[i:i+1]
+                        labels_input = point_labels[i:i+1]
+                        boxes_input = None
+                    
                     sparse_embeddings, dense_embeddings = self.sam.prompt_encoder(
-                        points=(point_coords[i:i+1], point_labels[i:i+1]),
-                        boxes=None,
+                        points=(points_input, labels_input) if points_input is not None else None,
+                        boxes=boxes_input,
                         masks=None
                     )
                     
@@ -178,7 +236,7 @@ class SAMFineTuner:
                     pred_mask = torch.sigmoid(upscaled_masks[0, 0]).cpu().numpy()
                     gt_mask = masks_gt[i, 0].cpu().numpy()
                     
-                    from evaluation import calculate_iou, calculate_dice
+                    from .evaluation import calculate_iou, calculate_dice
                     total_iou += calculate_iou(pred_mask, gt_mask)
                     total_dice += calculate_dice(pred_mask, gt_mask)
                     n_samples += 1
@@ -215,16 +273,17 @@ class SAMFineTuner:
             
             self.scheduler.step(val_loss)
 
-            # Save last model
-            if epoch % 5 == 0 or epoch == self.config.NUM_EPOCHS - 1:
-                torch.save(self.sam.state_dict(), f"{self.config.OUTPUT_DIR}/last_model.pth")
-                print("  Last model saved.")
+            # Save periodic checkpoint
+            if (epoch + 1) % self.config.CHECKPOINT_FREQUENCY == 0 or (epoch + 1) == self.config.NUM_EPOCHS:
+                checkpoint_path = f"{self.config.OUTPUT_DIR}/checkpoint_epoch_{epoch+1}.pth"
+                torch.save(self.sam.state_dict(), checkpoint_path)
+                print(f"  Periodic checkpoint saved: {checkpoint_path}")
 
             # Save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.sam.state_dict(), f"{self.config.OUTPUT_DIR}/best_model.pth")
-                print("  Best model saved.")
+                print("  Best model saved!")
 
             print()
         
