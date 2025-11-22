@@ -10,6 +10,8 @@ import random
 from segment_anything import sam_model_registry
 
 from .loss import CombinedLoss
+
+
 class SAMFineTuner:
     """
     Fine-tuner for SAM model.
@@ -288,3 +290,47 @@ class SAMFineTuner:
             print()
         
         return self.history
+    
+    def load(self, path) -> 'SAMFineTuner':
+        """
+        Load the model from a checkpoint.
+        
+        Args:
+            path: Path to the checkpoint
+            
+        Returns:
+            SAMFineTuner: Self for method chaining
+        """
+        self.sam.load_state_dict(torch.load(path, map_location=self.device))
+        print(f"Model loaded from: {path}")
+        return self
+
+    def save(self, path) -> 'SAMFineTuner':
+        """
+        Save the model to a checkpoint.
+        
+        Args:
+            path: Path to the checkpoint
+            
+        Returns:
+            SAMFineTuner: Self for method chaining
+        """
+        torch.save(self.sam.state_dict(), path)
+        print(f"Model saved to: {path}")
+        return self
+    
+    @classmethod
+    def create_original(cls, config):
+        """
+        Create a SAMFineTuner instance with the original pre-trained weights.
+        Useful for comparison with fine-tuned models.
+        
+        Args:
+            config: Configuration object
+            
+        Returns:
+            SAMFineTuner: Instance with original weights
+        """
+        instance = cls(config)
+        # Model is already loaded with original weights in __init__
+        return instance
