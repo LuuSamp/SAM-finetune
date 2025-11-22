@@ -4,7 +4,7 @@ Configuration settings for SAM fine-tuning on Kvasir-SEG dataset.
 
 import torch
 from pathlib import Path
-from setup import setup_complete_environment
+from .setup import setup_complete_environment
 
 
 class Config:

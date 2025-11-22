@@ -6,10 +6,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import Config
-from dataloaders import prepare_data_splits, create_data_loaders
-from sam_model import SAMFineTuner
-from evaluation import plot_training_curves, visualize_predictions, save_results
+from model.config import Config
+from model.dataloaders import prepare_data_splits, create_data_loaders
+from model.sam_model import SAMFineTuner
+from model.evaluation import plot_training_curves, visualize_predictions, save_results
 
 
 def main():
