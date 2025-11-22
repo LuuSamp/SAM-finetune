@@ -8,6 +8,8 @@ data/
 
 # C extensions
 *.so
+*.pth
+kvasir_seg_data/
 
 # Distribution / packaging
 .Python

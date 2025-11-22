@@ -1,44 +1,57 @@
+"""
+Configuration settings for SAM fine-tuning on Kvasir-SEG dataset.
+"""
+
 import torch
-import os
+from pathlib import Path
+from setup import setup_complete_environment
 
-# Enable memory optimizations
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
-# Dataset settings
-DATA_ROOT = './data/oxford_pets'
-BATCH_SIZE = 1  
-IMAGE_SIZE = 1024  
-NUM_WORKERS = 0  
-
-# Model settings - Use smallest model
-MODEL_TYPE = 'vit_b'  # vit_b is smallest (vit_h would use 3x more memory)
-SAM_CHECKPOINT = './sam_vit_b_01ec64.pth'
-
-# LoRA settings 
-LORA_RANK = 4  
-LORA_ALPHA = 1
-
-# Training settings
-NUM_EPOCHS = 5  
-LEARNING_RATE = 5e-5  
-WEIGHT_DECAY = 1e-4
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-# Memory optimization settings
-USE_GRADIENT_CHECKPOINTING = True
-USE_AMP = False  
-GRADIENT_ACCUMULATION_STEPS = 4  
-
-# Checkpoint settings
-SAVE_DIR = './checkpoints'
-
-print("="*70)
-print(" LOW VRAM Configuration Loaded")
-print("="*70)
-print(f"  Device: {DEVICE}")
-print(f"  Model: {MODEL_TYPE}")
-print(f"  Batch size: {BATCH_SIZE} (effective: {BATCH_SIZE * GRADIENT_ACCUMULATION_STEPS})")
-print(f"  LoRA rank: {LORA_RANK}")
-print(f"  Gradient Checkpointing: {USE_GRADIENT_CHECKPOINTING}")
-print(f"  Mixed Precision: {USE_AMP}")
-print("="*70)
+class Config:
+    """Configuration class for SAM fine-tuning."""
+    
+    def __init__(self):
+        """Initialize configuration and setup environment."""
+        # Setup environment and get paths
+        self.DATA_DIR, self.CHECKPOINT_PATH = setup_complete_environment()
+        
+        # Output directory
+        self.OUTPUT_DIR = "./outputs"
+        Path(self.OUTPUT_DIR).mkdir(exist_ok=True)
+        
+        # Model settings
+        self.MODEL_TYPE = "vit_b"
+        self.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Image processing
+        self.IMAGE_SIZE = 1024  # SAM requires 1024x1024 images
+        
+        # Training parameters
+        self.BATCH_SIZE = 4
+        self.NUM_EPOCHS = 15
+        self.LEARNING_RATE = 1e-5
+        self.WEIGHT_DECAY = 1e-4
+        
+        # Data splits
+        self.TRAIN_SPLIT = 0.7
+        self.VAL_SPLIT = 0.15
+        self.TEST_SPLIT = 0.15
+        
+        # Freeze settings
+        self.FREEZE_IMAGE_ENCODER = True
+        self.FREEZE_PROMPT_ENCODER = True
+        
+        # Augmentation
+        self.USE_AUGMENTATION = True
+    
+    def print_config(self):
+        """Print configuration settings."""
+        print("Configuration Settings:")
+        print(f"  Device: {self.DEVICE}")
+        print(f"  Image Size: {self.IMAGE_SIZE}x{self.IMAGE_SIZE}")
+        print(f"  Batch Size: {self.BATCH_SIZE}")
+        print(f"  Epochs: {self.NUM_EPOCHS}")
+        print(f"  Learning Rate: {self.LEARNING_RATE}")
+        print(f"  Train/Val/Test Split: {self.TRAIN_SPLIT}/{self.VAL_SPLIT}/{self.TEST_SPLIT}")
+        print(f"  Data Directory: {self.DATA_DIR}")
+        print(f"  Checkpoint Path: {self.CHECKPOINT_PATH}")
