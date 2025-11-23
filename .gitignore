@@ -5,6 +5,7 @@ __pycache__/
 
 # Other folders
 data/
+*.zip
 
 # C extensions
 *.so
