@@ -302,4 +302,4 @@ Este projeto utiliza o SAM da Meta AI. Consulte as licenças dos componentes uti
 
 ---
 ## Apresentação do trabalho
-[SAM - Apresentação]([https://www.youtube.com/watch?v=_HFOzudHWUw](https://www.youtube.com/watch?v=Vrisz5Q8Gfk)) (link: [https://www.youtube.com/watch?v=_HFOzudHWUw]([https://www.youtube.com/watch?v=_HFOzudHWUw](https://www.youtube.com/watch?v=Vrisz5Q8Gfk)))
+[SAM - Apresentação](https://www.youtube.com/watch?v=Vrisz5Q8Gfk) (link: [https://www.youtube.com/watch?v=Vrisz5Q8Gfk](https://www.youtube.com/watch?v=Vrisz5Q8Gfk))
