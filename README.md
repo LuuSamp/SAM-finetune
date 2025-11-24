@@ -300,3 +300,6 @@ Este projeto utiliza o SAM da Meta AI. Consulte as licenças dos componentes uti
 
 **Desenvolvido para pesquisa e aplicações em segmentação médica**
 
+---
+## Apresentação do trabalho
+[SAM - Apresentação]([https://www.youtube.com/watch?v=_HFOzudHWUw](https://www.youtube.com/watch?v=Vrisz5Q8Gfk)) (link: [https://www.youtube.com/watch?v=_HFOzudHWUw]([https://www.youtube.com/watch?v=_HFOzudHWUw](https://www.youtube.com/watch?v=Vrisz5Q8Gfk)))
