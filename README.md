@@ -4,15 +4,42 @@ Este projeto implementa o fine-tuning do **Segment Anything Model (SAM)** da Met
 
 ## Índice
 
+- [Estrutura do Projeto](#estrutura-do-projeto)
 - [Sobre o Projeto](#sobre-o-projeto)
 - [Características Principais](#características-principais)
 - [Resultados](#resultados)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Requisitos](#requisitos)
 - [Instalação](#instalação)
 - [Uso](#uso)
 - [Configurações](#configurações)
 - [Estrutura de Arquivos](#estrutura-de-arquivos)
+- [Apresentação](#apresentação-do-trabalho)
+
+## Estrutura do Projeto
+
+```
+SAM-finetune/
+│
+├── model/                      # Módulos principais do projeto
+│   ├── __init__.py
+│   ├── config.py              # Configurações do modelo
+│   ├── dataloaders.py         # Carregamento e preparação de dados
+│   ├── evaluation.py          # Funções de avaliação e visualização
+│   ├── loss.py                # Funções de perda combinadas
+│   ├── sam_model.py           # Classe principal para fine-tuning
+│   └── setup.py               # Setup automático do ambiente
+│
+├── outputs/                    # Resultados do treinamento
+│   ├── best_model.pth         # Melhor modelo salvo
+│   ├── checkpoint_epoch_*.pth  # Checkpoints periódicos
+│   ├── training_curves.png     # Gráficos de treinamento
+│   ├── predictions.png         # Visualizações de predições
+│   └── results.json            # Métricas salvas
+│
+├── main.ipynb                  # Notebook principal com análises
+├── train.py                    # Script de treinamento
+├── requirements.txt            # Dependências do projeto
+└── README.md                   # Este arquivo
+```
 
 ## Sobre o Projeto
 
@@ -50,53 +77,12 @@ O modelo fine-tuned demonstra melhorias significativas em relação ao modelo pr
 - **Melhoria Média**: +0.0930 em IoU
 - **Casos Desafiadores**: Em casos difíceis (IoU < 0.7 no modelo base), o modelo fine-tuned alcança IoU médio de 0.7707 (vs 0.4726 no modelo base)
 
-## Estrutura do Projeto
-
-```
-SAM-finetune/
-│
-├── model/                      # Módulos principais do projeto
-│   ├── __init__.py
-│   ├── config.py              # Configurações do modelo
-│   ├── dataloaders.py         # Carregamento e preparação de dados
-│   ├── evaluation.py          # Funções de avaliação e visualização
-│   ├── loss.py                # Funções de perda combinadas
-│   ├── sam_model.py           # Classe principal para fine-tuning
-│   └── setup.py               # Setup automático do ambiente
-│
-├── outputs/                    # Resultados do treinamento
-│   ├── best_model.pth         # Melhor modelo salvo
-│   ├── checkpoint_epoch_*.pth  # Checkpoints periódicos
-│   ├── training_curves.png     # Gráficos de treinamento
-│   ├── predictions.png         # Visualizações de predições
-│   └── results.json            # Métricas salvas
-│
-├── main.ipynb                  # Notebook principal com análises
-├── train.py                    # Script de treinamento
-├── requirements.txt            # Dependências do projeto
-└── README.md                   # Este arquivo
-```
-
-## Requisitos
-
-### Hardware de teste
-
-- **GPU**: RTX 3050 (Laptop) 6GB VRAM
-- **RAM**: 16 GB DDR5 5200 MHz
-- **Espaço em Disco**: ~5GB para dataset e checkpoints
-
-### Software
-
-- Python 3.8+
-- PyTorch 1.9.0+
-- CUDA (opcional, mas recomendado)
-
 ## Instalação
 
 ### 1. Clone o repositório
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/LuuSamp/SAM-finetune.git
 cd SAM-finetune
 ```
 
@@ -129,7 +115,7 @@ O ambiente será configurado automaticamente na primeira execução, incluindo:
 
 ### Treinamento
 
-Para treinar o modelo do zero, execute:
+Para treinar o modelo, execute:
 
 ```bash
 python train.py
@@ -268,37 +254,6 @@ O SAM (Segment Anything Model) consiste em três componentes principais:
 3. **Mask Decoder**: Gera máscaras de segmentação
 
 **Estratégia de Fine-tuning**: Apenas o **Mask Decoder** é treinado (4.33% dos parâmetros), mantendo os encoders congelados para eficiência e prevenção de overfitting.
-
-## Notas Importantes
-
-- O modelo SAM requer imagens de tamanho 1024x1024
-- O treinamento é otimizado para GPU, mas pode rodar em CPU (muito mais lento)
-- Checkpoints são salvos periodicamente durante o treinamento
-- O melhor modelo é salvo automaticamente baseado na loss de validação
-
-## Contribuições
-
-Contribuições são bem-vindas! Sinta-se à vontade para:
-- Reportar bugs
-- Sugerir melhorias
-- Adicionar novas funcionalidades
-- Melhorar a documentação
-
-## Licença
-
-Este projeto utiliza o SAM da Meta AI. Consulte as licenças dos componentes utilizados:
-- [Segment Anything Model License](https://github.com/facebookresearch/segment-anything/blob/main/LICENSE)
-- Dataset Kvasir-SEG: Consulte os termos de uso do dataset
-
-## Agradecimentos
-
-- Meta AI pelo Segment Anything Model
-- Simula Research Laboratory pelo dataset Kvasir-SEG
-- Comunidade open source pelas bibliotecas utilizadas
-
----
-
-**Desenvolvido para pesquisa e aplicações em segmentação médica**
 
 ---
 ## Apresentação do trabalho
